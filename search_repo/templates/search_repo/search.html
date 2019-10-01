@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h1>Success</h1>
-</body>
-</html>
+{% extends 'search_repo/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% if form %}
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button>Search</button>
+</form>
+{% endif %}
+{% endblock %}
