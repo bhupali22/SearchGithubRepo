@@ -2,7 +2,21 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-{% if form %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Total Commits</th>
+        </tr>
+    </thead>
 
-{% endif %}
+    <tbody>
+        {% for contrib in contributors %}
+            <tr>
+                <td>{{ contrib.login }}</td>
+                <td>{{ contrib.contributions }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}
