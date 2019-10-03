@@ -2,21 +2,22 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<table class="table">
-    <thead>
-        <tr>
-            <th>Username</th>
-            <th>Total Commits</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        {% for contrib in contributors %}
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead>
             <tr>
-                <td>{{ contrib.login }}</td>
-                <td>{{ contrib.contributions }}</td>
+                <th>Username</th>
+                <th>Total Commits</th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for contrib in contributors %}
+                <tr>
+                    <td>{{ contrib.author.login }}</td>
+                    <td>{{ contrib.total }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
