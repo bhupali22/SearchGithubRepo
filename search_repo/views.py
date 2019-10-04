@@ -29,14 +29,17 @@ class search_repository(FormView):
             else:
                 contributors_link = requests.get(repo_link)
                 response_contributors = contributors_link.json()
-                l = len(response_contributors)
-                contributors = response_contributors[l:l-11:-1]
                 try:
                     if response_contributors['message'] == "Not Found":
                         return HttpResponse("<h1>This github url does not exist</h1>")
                 except:
+                    l = len(response_contributors)
+                    contributors = response_contributors[l:l - 11:-1]
                     context['contributors'] = contributors
                     return render(request, 'search_repo/display.html',context)
+
+        else:
+            return HttpResponse("<h1>Invalid URL</h1>")
 
 
 
