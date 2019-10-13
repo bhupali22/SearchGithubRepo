@@ -1,5 +1,5 @@
 from django.db import models
-
+# https://stackoverflow.com/questions/32988532/django-models-best-way-to-save-multiple-values
 
 # Create your models here.
 class History(models.Model):
