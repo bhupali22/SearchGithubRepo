@@ -42,31 +42,13 @@ class search_repository(FormView):
                     context['contributors'] = contributors
                     try:
                         new_url = History.objects.get(repo_url = repo_url_link)
-                        con_obj = Contributor.objects.filter(url = new_url)
-                        for _ in con_obj:
-                            commit_obj = Commit.objects.get(con=_)
-                            # if commit_obj.no_of_commits != contributors[_.]['total']
-
-                            print(commit_obj.con.author_login)
-                            print(commit_obj.no_of_commits)
+                        new_url.update_data(contributors)
                     except ObjectDoesNotExist:
                         new_url = History.objects.create(
                             repo_url = repo_url_link,
                         )
                         new_url.save()
-
-                        for i in range(len(contributors)):
-                            con_obj = Contributor.objects.create(
-                                author_login = contributors[i]['author']['login'],
-                                url = new_url,
-                            )
-                            con_obj.save()
-                            commit_obj = Commit.objects.create(
-                                no_of_commits = contributors[i]['total'],
-                                con = con_obj,
-                            )
-                            commit_obj.save()
-
+                        new_url.save_new_data(contributors)
                     return render(request, 'search_repo/display.html',context)
 
         else:

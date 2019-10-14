@@ -8,7 +8,7 @@ class HistoryAdmin(admin.ModelAdmin):
 
 
 class ContributorAdmin(admin.ModelAdmin):
-    list_display = ("author_login",)
+    list_display = ("author_login","ranking")
 
 
 class CommitAdmin(admin.ModelAdmin):
