@@ -10,21 +10,24 @@ class History(models.Model):
 
     def update_data(self, contributors):
         con_obj = Contributor.objects.filter(url = self)
+        print(con_obj)
         i = 0
         for _ in con_obj:
             commit_obj = Commit.objects.get(con=_)
+            print(commit_obj)
             i = i + 1
             if _.ranking == i:
                 if commit_obj.con.author_login == contributors[i - 1]['author']['login']:
+                    print("in if")
                     if commit_obj.no_of_commits == contributors[i - 1]['total']:
                         pass
                     else:
                         commit_obj.no_of_commits = contributors[i - 1]['total']
                         commit_obj.save()
                 else:
-                    commit_obj.con.author_login = contributors[i - 1]['author']['login']
-                    commit_obj.no_of_commits = contributors[i - 1]['total']
-                    commit_obj.save()
+                    print(commit_obj.con.author_login, commit_obj.no_of_commits, contributors[i - 1]['author']['login'], contributors[i - 1]['total'])
+                    _.delete()
+                    self.add_data(i=i-1,contributors=contributors)
         while (i != len(contributors)):
             self.add_data(i, contributors)
             i = i+1

@@ -37,8 +37,8 @@ class search_repository(FormView):
                     return HttpResponse("<h1>API rate Limit exceeded</h1>")
                 else:
                     response_contributors = contributors_link.json()
-                    l = len(response_contributors)
-                    contributors = response_contributors[l:l - 11:-1]
+                    length = len(response_contributors)
+                    contributors = response_contributors[length:length - 11:-1]
                     context['contributors'] = contributors
                     try:
                         new_url = History.objects.get(repo_url = repo_url_link)
