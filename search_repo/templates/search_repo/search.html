@@ -6,7 +6,8 @@
 <form method="post">
     {% csrf_token %}
     {{ form|crispy }}
-    <button class="btn btn-success">Search</button>
+    <button class="btn btn-success" name="api_fetch">Search</button>
+    <button class="btn btn-success" name="database_fetch">Search in history</button>
 </form>
 {% endif %}
 {% endblock %}

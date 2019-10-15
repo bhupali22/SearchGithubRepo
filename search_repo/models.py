@@ -10,22 +10,18 @@ class History(models.Model):
 
     def update_data(self, contributors):
         con_obj = Contributor.objects.filter(url = self)
-        print(con_obj)
         i = 0
         for _ in con_obj:
-            commit_obj = Commit.objects.get(con=_)
-            print(commit_obj)
+            commit_obj = Commit.objects.get(contributor=_)
             i = i + 1
             if _.ranking == i:
-                if commit_obj.con.author_login == contributors[i - 1]['author']['login']:
-                    print("in if")
+                if commit_obj.contributor.author_login == contributors[i - 1]['author']['login']:
                     if commit_obj.no_of_commits == contributors[i - 1]['total']:
                         pass
                     else:
                         commit_obj.no_of_commits = contributors[i - 1]['total']
                         commit_obj.save()
                 else:
-                    print(commit_obj.con.author_login, commit_obj.no_of_commits, contributors[i - 1]['author']['login'], contributors[i - 1]['total'])
                     _.delete()
                     self.add_data(i=i-1,contributors=contributors)
         while (i != len(contributors)):
@@ -46,7 +42,7 @@ class History(models.Model):
         con_obj.save()
         commit_obj = Commit.objects.create(
             no_of_commits=contributors[i]['total'],
-            con=con_obj,
+            contributor=con_obj,
         )
         commit_obj.save()
 
@@ -62,5 +58,4 @@ class Contributor(models.Model):
 
 class Commit(models.Model):
     no_of_commits = models.IntegerField(default=0)
-    con = models.OneToOneField(Contributor, on_delete=models.CASCADE)
-
+    contributor = models.OneToOneField(Contributor, on_delete=models.CASCADE)

@@ -1,0 +1,29 @@
+{% extends 'search_repo/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="table-reponsive">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Total Commits</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contrib, commits in contributors_set.items %}
+                <tr>
+                    <td>{{ contrib }}</td>
+                    <td>{{ commits }}</td>
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+<a href="{% url 'search_repository' %}">Search another repository</a>
+
+{% endblock %}
+
