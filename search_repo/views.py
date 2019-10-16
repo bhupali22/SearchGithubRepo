@@ -36,9 +36,9 @@ class search_repository(FormView):
                     elif contributors_link.status_code == 403:
                         return HttpResponse("<h1>API rate Limit exceeded</h1>")
                     else:
-                        response_contributors = contributors_link.json()
-                        length = len(response_contributors)
-                        contributors = response_contributors[length-1:length - 11:-1]
+                        response_contributors = list(contributors_link.json())
+                        response_contributors.reverse()
+                        contributors = response_contributors[0:10]
                         context['contributors'] = contributors
                         try:
                             new_url = History.objects.get(repo_url=repo_url_link)
@@ -69,6 +69,3 @@ class search_repository(FormView):
                 context['contributors_set'] = dict1
 
                 return render(request, 'search_repo/display_from_database.html',context)
-
-class DisplayData(ListView):
-    pass
