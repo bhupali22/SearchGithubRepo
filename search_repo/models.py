@@ -2,10 +2,6 @@ from django.db import models
 # https://stackoverflow.com/questions/32988532/django-models-best-way-to-save-multiple-values
 
 # Create your models here.
-<<<<<<< HEAD
-
-
-=======
 class History(models.Model):
     repo_url = models.URLField(max_length=700)
 
@@ -63,4 +59,3 @@ class Contributor(models.Model):
 class Commit(models.Model):
     no_of_commits = models.IntegerField(default=0)
     contributor = models.OneToOneField(Contributor, on_delete=models.CASCADE)
->>>>>>> model_branch
