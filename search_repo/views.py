@@ -1,5 +1,5 @@
 from collections import defaultdict
-
+import time
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
@@ -31,6 +31,10 @@ class search_repository(FormView):
                     return HttpResponse("<h1>No such repository found</h1>")
                 else:
                     contributors_link = requests.get(repo_link)
+                    while(contributors_link.status_code == 202):
+                        print(contributors_link)
+                        time.sleep(2)
+                        contributors_link = requests.get(repo_link)
                     if contributors_link.status_code == 404:
                         return HttpResponse("<h1>This github url does not exist</h1>")
                     elif contributors_link.status_code == 403:
