@@ -1,10 +1,12 @@
 from collections import defaultdict
-import time
+import time, csv
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 import requests
 from .models import History, Commit, Contributor
+from datetime import datetime
+import pandas as pd
 
 # Create your views here.
 from django.views.generic import FormView, TemplateView, ListView
@@ -17,59 +19,86 @@ class search_repository(FormView):
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         context = self.get_context_data(**kwargs)
+        csv_data = []
+        page = 1
+        flag = True
+
         if "api_fetch" in request.POST:
             if form.is_valid():
                 repo_url_link = form.cleaned_data.get('title')
-                url_link = repo_url_link
-                base_url = "https://api.github.com/"
+                branch_name = form.cleaned_data.get('branch')
+                from_date = form.cleaned_data.get('form_date')
+                to_date = form.cleaned_data.get('to_date')
 
-                try:
-                    new_url_link = url_link.strip().replace("https://github.com/", '')
-                    user_name = list(map(str, new_url_link.split('/')))
-                    repo_link = base_url + 'repos/' + user_name[0] + '/' + user_name[1] + '/stats/contributors'
-                except:
-                    return HttpResponse("<h1>No such repository found</h1>")
-                else:
-                    contributors_link = requests.get(repo_link)
-                    while(contributors_link.status_code == 202):
-                        print(contributors_link)
-                        time.sleep(2)
-                        contributors_link = requests.get(repo_link)
-                    if contributors_link.status_code == 404:
-                        return HttpResponse("<h1>This github url does not exist</h1>")
-                    elif contributors_link.status_code == 403:
-                        return HttpResponse("<h1>API rate Limit exceeded</h1>")
+                if from_date > to_date:
+                    return HttpResponse("<h1>Wrong from date and to date selected</h1>")
+
+                while(flag) :
+                    try:
+                        new_url_link = repo_url_link + '/' + branch_name + '/pulls?access_token=ffb2ce7632c3ff6b0d5c18fa1fc4ce933434bc06&state=all&page={}'.format(page)
+                        print(new_url_link)
+                        # new_url_link = 'https://api.github.com/repos/apple/swift-algorithms/pulls?state=all&page={}'.format(page)
+                    except:
+                        return HttpResponse("<h1>No such repository found</h1>")
                     else:
-                        response_contributors = list(contributors_link.json())
-                        response_contributors.reverse()
-                        contributors = response_contributors[0:10]
-                        context['contributors'] = contributors
-                        try:
-                            new_url = History.objects.get(repo_url=repo_url_link)
-                            new_url.update_data(contributors)
-                        except ObjectDoesNotExist:
-                            new_url = History.objects.create(
-                                repo_url=repo_url_link,
-                            )
-                            new_url.save()
-                            new_url.save_new_data(contributors)
-                        return render(request, 'search_repo/display.html', context)
+                        response_data = self.get_data(new_url_link)
+                        if type(response_data) == HttpResponse:
+                            return response_data
+                        for response in response_data:
+                            if response['created_at'].split('T')[0] <= str(to_date):
+                                if str(from_date) <= response['created_at'].split('T')[0]:
+                                    com_obj = {
+                                        'changelist_no': response['number'],
+                                        'summary': response['title'],
+                                        'author': response['user']['login'],
+                                        'comments_url': response['review_comments_url'] + "?access_token=ffb2ce7632c3ff6b0d5c18fa1fc4ce933434bc06",
+                                        # 'comments_url': response['review_comments_url'],
+                                        'review_comments': []
+                                    }
+                                    csv_data.append(com_obj)
+                                if str(from_date) > response['created_at'].split('T')[0]:
+                                    flag = False
+                                    break
+                        else:
+                            page += 1
+                            flag = True
+
+                output_file = open("output.csv", "w")
+                dict_writer = csv.DictWriter(output_file, ['changelist_no', 'summary', 'author', 'comment', 'reviewer'])
+                dict_writer.writeheader()
+
+                for com_obj in csv_data:
+                    all_review_comments = self.get_data(com_obj['comments_url'])
+
+                    if type(all_review_comments) == HttpResponse:
+                        return all_review_comments
+
+                    for com in all_review_comments:
+                        comment_obj = {
+                            'comment': com['body'],
+                            'reviewer': com['user']['login']
+                        }
+                        com_obj['review_comments'].append(comment_obj)
+                    com_obj.pop('comments_url')
+
+                dict_writer.writerows(csv_data)
+                context['header'] = "Data Dump to output.csv"
+                output_file.close()
+
+                return render(request, 'search_repo/display.html', context)
 
             else:
                 return HttpResponse("<h1>Invalid URL</h1>")
 
-        if "database_fetch" in request.POST:
-            if form.is_valid():
-                repo_url_link = form.cleaned_data.get('title')
-                try:
-                    query_set = History.objects.get(repo_url = repo_url_link)
-                except ObjectDoesNotExist:
-                    return HttpResponse("<h1>No history available for this url</h1>")
-                dict1 = defaultdict()
-                contributors_set = Contributor.objects.filter(url=query_set.id).order_by('ranking')
-                for contrib in contributors_set:
-                    result = Commit.objects.get(contributor = contrib)
-                    dict1[contrib] = result.no_of_commits
-                context['contributors_set'] = dict1
-
-                return render(request, 'search_repo/display_from_database.html',context)
+    def get_data(self, url_link):
+        data = requests.get(url_link)
+        while (data.status_code == 202):
+            print(contributors_link)
+            time.sleep(2)
+            data = requests.get(url_link)
+        if data.status_code == 404:
+            return HttpResponse("<h1>This github url does not exist</h1>")
+        elif data.status_code == 403:
+            return HttpResponse("<h1>API rate Limit exceeded</h1>")
+        else:
+            return list(data.json())
